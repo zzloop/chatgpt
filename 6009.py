@@ -2,25 +2,35 @@ import imaplib
 import email
 from email.header import decode_header
 import os
-from datetime import date
+from datetime import date, timedelta
 
 # 配置
-username = "barranquilla_checd@163.com"
-password = "BLJYxmb2021"  # 请替换为你的邮箱密码
+username = "lispzhen@163.com"
+password = "7979248839"  # 请替换为你的邮箱密码
 imap_server = "imap.163.com"
 port = 993
 
-# 定义当天日期
-today = date.today()
-today_str = today.strftime("%d-%b-%Y")
+# 计算前一天的日期
+yesterday = date.today() - timedelta(days=1)
+yesterday_str = yesterday.strftime("%d-%b-%Y")  # 不再需要编码为UTF-8
 
 # 连接到IMAP服务器
 mail = imaplib.IMAP4_SSL(imap_server, port)
 mail.login(username, password)
+
+# 网易邮箱的特点，强制ID语句
+imaplib.Commands["ID"] = "NONAUTH"
+mail._simple_command("ID", '("name" "test" "version" "0.0.1")')
+
+# 选择邮箱
 mail.select("inbox")
 
-# 定义搜索条件（特定发件人、邮件标题和当天日期）
-search_criteria = f'(FROM "hj6009@checd.com" SUBJECT "航浚6009轮 * 报表" SINCE "{today_str}")'
+# 定义搜索条件（特定发件人、邮件标题和前一天日期），不再需要编码为UTF-8
+from_email = "\"hj6009@checd.com\""
+subject_criteria = "\"航浚6009轮 * 报表\""
+
+# 构建搜索条件，使用SENTON来指定日期
+search_criteria = f'(FROM {from_email} SUBJECT {subject_criteria} SENTON "{yesterday_str}")'
 
 # 搜索邮件
 status, email_ids = mail.search(None, search_criteria)
